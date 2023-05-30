@@ -1,8 +1,9 @@
 import numpy as np
 import torch
 import torch.nn.functional as F
-from torch.optim import Adam
 from torch.distributions import Categorical
+from torch.optim import Adam
+
 
 def soft_update(target, source, tau):
     for target_param, param in zip(target.parameters(), source.parameters()):

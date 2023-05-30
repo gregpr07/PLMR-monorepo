@@ -1,9 +1,9 @@
 import numpy as np
 import torch
 import torch.nn as nn
-from torch.distributions import Categorical
 import torch.nn.functional as F
 from torch.autograd import Variable, grad
+from torch.distributions import Categorical
 
 
 class SoftQNetwork(nn.Module):

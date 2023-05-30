@@ -8,7 +8,9 @@ import gym
 import numpy as np
 import torch
 from iq_learn.SAC import SAC
+from iq_learn.SoftQ import SoftQ
 from torch.utils.tensorboard import SummaryWriter
+from tqdm import tqdm
 from utils.memory import MemoryBuffer
 
 
@@ -33,13 +35,21 @@ def make_environment(args, render_mode=None):
     # action space. It should be extended later.
     return gym.make(args.env.name, render_mode=render_mode)#, healthy_z_range=(0.2, 1.5))
 
-
 def make_agent(env, args):
     # When we have an agent for discrete action spaces,
     # it can also be created here.
     obs_dim = env.observation_space.shape[0]
-    action_dim = env.action_space.shape[0]
-    return SAC(obs_dim, action_dim, args, env.action_space.low, env.action_space.high)
+    if isinstance(env.action_space, gym.spaces.discrete.Discrete):
+        print('--> Using Soft-Q agent')
+        action_dim = env.action_space.n
+        agent = SoftQ(obs_dim, action_dim, args)
+    else:
+        print('--> Using SAC agent')
+        action_dim = env.action_space.shape[0]
+        agent = SAC(obs_dim, action_dim, args, env.action_space.low, env.action_space.high)
+
+    return agent
+
 
 
 def evaluate(agent, args, epoch, learn_steps, writer):
@@ -80,7 +90,7 @@ def save(agent, args, timestamp, output_dir='./results'):
 
 
 def main():
-    with open('configs/half_cheetah.json') as f:
+    with open('configs/cartpole.json') as f:
         args = AttrDict(json.load(f))
 
     # Set the seeds
@@ -106,7 +116,7 @@ def main():
     # Create expert memory buffer
     expert_memory_replay = MemoryBuffer(args.seed + 3)
     expert_memory_replay.generate_expert_data(
-        env, args.expert, args.seed + 4
+        env, args.expert, args.seed + 4, 'DQN'
     )
 
     # Train

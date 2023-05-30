@@ -15,7 +15,7 @@ def orthogonal_init_(m):
             m.bias.data.fill_(0.0)
 
 
-def mlp(input_dim, hidden_dim, output_dim, hidden_depth, output_mod=None):
+def mlp(input_dim, hidden_dim, output_dim, hidden_depth, device, output_mod=None):
     if hidden_depth == 0:
         mods = [torch.nn.Linear(input_dim, output_dim)]
     else:
@@ -25,24 +25,29 @@ def mlp(input_dim, hidden_dim, output_dim, hidden_depth, output_mod=None):
         mods.append(torch.nn.Linear(hidden_dim, output_dim))
     if output_mod is not None:
         mods.append(output_mod)
-    return torch.nn.Sequential(*mods)
+    print(device)
+    return torch.nn.Sequential(*mods).to(device)
 
 
 class SingleQCritic(torch.nn.Module):
-    def __init__(self, obs_dim, action_dim, args):
+    def __init__(self, obs_dim, action_dim, device, args):
         super(SingleQCritic, self).__init__()
         self.obs_dim = obs_dim
         self.action_dim = action_dim
         self.args = args
+        self.device = device
 
         # Q architecture
-        self.Q = mlp(obs_dim + action_dim, args.hidden_dim, 1, args.hidden_depth)
+        self.Q = mlp(obs_dim + action_dim, args.hidden_dim, 1, args.hidden_depth, self.device).to(self.device)
 
         # Apply custom weight initialisation
         self.apply(orthogonal_init_)
 
     def forward(self, obs, action):
         assert obs.size(0) == action.size(0)
+
+        obs = obs.to(self.device)
+        action = action.to(self.device)
 
         obs_action = torch.cat([obs, action], dim=-1)
         q = self.Q(obs_action)
@@ -102,17 +107,20 @@ class SquashedNormal(pyd.transformed_distribution.TransformedDistribution):
 class DiagGaussianActor(torch.nn.Module):
     """torch.distributions implementation of a diagonal Gaussian policy."""
 
-    def __init__(self, obs_dim, action_dim, args):
+    def __init__(self, obs_dim, action_dim, device, args):
         super().__init__()
+
+        self.device = device
 
         self.log_std_bounds = args.log_std_bounds
         self.trunk = mlp(obs_dim, args.hidden_dim, 2 * action_dim,
-                         args.hidden_depth)
+                         args.hidden_depth, self.device).to(self.device)
 
         self.outputs = dict()
         self.apply(orthogonal_init_)
 
     def forward(self, obs):
+        obs = obs.to(self.device)
         mu, log_std = self.trunk(obs).chunk(2, dim=-1)
 
         # constrain log_std inside [log_std_min, log_std_max]

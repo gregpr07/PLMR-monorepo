@@ -100,18 +100,23 @@ class SAC(object):
         self.critic = SingleQCritic(
             obs_dim,
             action_dim,
-            args.critic).to(device=self.device)
+            self.device,
+            args.critic,
+            ).to(device=self.device)
         self.critic_optim = Adam(self.critic.parameters(), lr=args.critic.critic_lr)
 
         self.critic_target = SingleQCritic(
             obs_dim,
             action_dim,
-            args.critic).to(device=self.device)
+            self.device,
+            args.critic,
+            ).to(device=self.device)
         hard_update(self.critic_target, self.critic)
 
         self.actor = DiagGaussianActor(
             obs_dim,
             action_dim,
+            self.device,
             args.actor).to(device=self.device)
         self.actor_optim = Adam(self.actor.parameters(), lr=args.actor.actor_lr)
 
@@ -175,6 +180,14 @@ class SAC(object):
             next_V = self.get_targetV(next_obs)
 
         current_Q = self.critic(obs, action)
+
+        # move all tensors to self.device
+        current_V = current_V.to(self.device)
+        next_V = next_V.to(self.device)
+        current_Q = current_Q.to(self.device)
+        obs = obs.to(self.device)
+        done = done.to(self.device)
+        is_expert = is_expert.to(self.device)
 
         loss = iq_loss(self, current_Q, current_V, next_V, obs, done, is_expert)
 

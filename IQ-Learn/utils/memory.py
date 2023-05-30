@@ -1,12 +1,12 @@
 import copy
 import random
-from typing import Tuple
 import warnings
+from typing import Tuple
 
 import numpy as np
-from gym import Env
-from stable_baselines3 import SAC, DQN
 import torch
+from gym import Env
+from stable_baselines3 import DQN, SAC
 from tqdm import tqdm
 
 

@@ -1,13 +1,11 @@
 import json
+
 import gym
-
-from attrdict import AttrDict
-import stable_baselines3 as sb
-
 import iq_learn
+import stable_baselines3 as sb
+from attrdict import AttrDict
 
 SEED = 0
-
 
 def load_expert(env_name, model_path):
     env = gym.make(env_name)
@@ -59,9 +57,6 @@ def evaluate_models(model_groups, env_names):
             mean_reward = total_reward / num_episodes
 
             print(f"{group_idx}, {env_name}: Mean Steps: {mean_steps:.2f}, Mean Reward: {mean_reward:.2f}")
-            print()
-
-        print()
 
 
 if __name__ == "__main__":

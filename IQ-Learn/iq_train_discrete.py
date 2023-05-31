@@ -90,7 +90,7 @@ def save(agent, args, timestamp, output_dir='./results'):
 
 
 def main():
-    with open('configs/cartpole.json') as f:
+    with open('configs/lunar_lander.json') as f:
         args = AttrDict(json.load(f))
 
     # Set the seeds

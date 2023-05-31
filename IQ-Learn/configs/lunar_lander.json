@@ -10,14 +10,14 @@
   "target_update_frequency": 1,
   "actor_update_frequency": 1,
   "initial_mem": 1280,
-  "standard_episode_length": 1000,
+  "standard_episode_length": 100,
   "env": {
     "name": "LunarLander-v2"
   },
   "expert": {
     "num_trajs": 1,
     "max_traj_steps": 5000,
-    "model_dir": "./experts/lunar_lander.zip"
+    "model_dir": "./experts/dqn_lunar"
   },
   "train": {
     "epochs": 500,
